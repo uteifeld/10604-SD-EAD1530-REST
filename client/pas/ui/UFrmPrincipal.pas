@@ -3,7 +3,8 @@ unit UFrmPrincipal;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls;
 
 type
@@ -31,17 +32,31 @@ var
 implementation
 
 uses
-  MVCFramework.RESTClient;
+  Rest.JSON, MVCFramework.RESTClient, UEfetuarPedidoDTOImpl, System.Rtti,
+  UPizzaSaborEnum, UPizzaTamanhoEnum;
 
 {$R *.dfm}
 
 procedure TForm1.Button1Click(Sender: TObject);
 var
   Clt: TRestClient;
+  oEfetuarPedido: TEfetuarPedidoDTO;
 begin
-  Clt := MVCFramework.RESTClient.TRestClient.Create(edtEnderecoBackend.Text, StrToIntDef(edtPortaBackend.Text, 80), nil);
+  Clt := MVCFramework.RESTClient.TRestClient.Create(edtEnderecoBackend.Text,
+    StrToIntDef(edtPortaBackend.Text, 80), nil);
   try
-    ShowMessage(Clt.doGET('/div/10/20', []).BodyAsString);
+    oEfetuarPedido := TEfetuarPedidoDTO.Create;
+    try
+      oEfetuarPedido.PizzaTamanho :=
+        TRttiEnumerationType.GetValue<TPizzaTamanhoEnum>(cmbTamanhoPizza.Text);
+      oEfetuarPedido.PizzaSabor :=
+        TRttiEnumerationType.GetValue<TPizzaSaborEnum>(cmbSaborPizza.Text);
+      oEfetuarPedido.DocumentoCliente := edtDocumentoCliente.Text;
+      mmRetornoWebService.Text := Clt.doPOST('/efetuarPedido', [],
+        TJson.ObjecttoJsonString(oEfetuarPedido)).BodyAsString;
+    finally
+      oEfetuarPedido.Free;
+    end;
   finally
     Clt.Free;
   end;

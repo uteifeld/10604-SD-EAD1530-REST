@@ -7,77 +7,50 @@ interface
 uses MVCFramework,
   MVCFramework.Logger,
   MVCFramework.Commons,
-  Web.HTTPApp;
+  Web.HTTPApp, UPizzaTamanhoEnum, UPizzaSaborEnum, UEfetuarPedidoDTOImpl;
 
 type
 
+  [MVCDoc('Pizzaria backend')]
   [MVCPath('/')]
   TPizzariaBackendController = class(TMVCController)
   public
-    [MVCPath('/')]
-    [MVCHTTPMethod([httpGET])]
-    procedure Index;
 
-    [MVCPath('/hello')]
-    [MVCHTTPMethod([httpGET])]
-    procedure HelloWorld;
-
-    [MVCPath('/hello')]
-    [MVCHTTPMethod([httpPOST])]
-    procedure HelloWorldPost;
-
-    [MVCPath('/div/($par1)/($par2)')]
-    [MVCHTTPMethod([httpGET])]
-    procedure RaiseException(par1, par2: string);
-
+    [MVCDoc('Criar novo pedido "201: Created"')]
     [MVCPath('/efetuarPedido')]
     [MVCHTTPMethod([httpPOST])]
-    procedure efetuarPedido(const APizzaTamanho: TPizzaTamanhoEnum; const APizzaSabor: TPizzaSaborEnum; const ADocumentoCliente: String);
+    procedure efetuarPedido(const AContext: TWebContext);
   end;
 
 implementation
 
 uses
   System.SysUtils,
+  Rest.json,
   MVCFramework.SystemJSONUtils,
-  System.JSON;
+  UPedidoServiceIntf,
+  UPedidoServiceImpl, UPedidoRetornoDTOImpl;
 
 { TApp1MainController }
 
-procedure TPizzariaBackendController.HelloWorld;
-begin
-  Render('Hello World called with GET');
-  if Context.Request.ThereIsRequestBody then
-    Log.Info('Body:' + Context.Request.Body, 'PizzariaBackend');
-end;
-
-procedure TPizzariaBackendController.HelloWorldPost;
+procedure TPizzariaBackendController.efetuarPedido(const AContext: TWebContext);
 var
-  JSON: TJSONObject;
+  oEfetuarPedidoDTO: TEfetuarPedidoDTO;
+  oPedidoRetornoDTO: TPedidoRetornoDTO;
 begin
-  JSON := TSystemJSON.StringAsJSONObject(Context.Request.Body);
+  oEfetuarPedidoDTO := AContext.Request.BodyAs<TEfetuarPedidoDTO>;
   try
-    JSON.AddPair('modified', 'from server');
-    Render(JSON, false);
+    with TPedidoService.Create do
+    try
+      oPedidoRetornoDTO := efetuarPedido(oEfetuarPedidoDTO.PizzaTamanho, oEfetuarPedidoDTO.PizzaSabor, oEfetuarPedidoDTO.DocumentoCliente);
+      Render(TJson.ObjectToJsonString(oPedidoRetornoDTO));
+    finally
+      oPedidoRetornoDTO.Free
+    end;
   finally
-    JSON.Free;
+    oEfetuarPedidoDTO.Free;
   end;
-  Log.Info('Hello world called with POST', 'PizzariaBackend');
-end;
-
-procedure TPizzariaBackendController.Index;
-begin
-  Redirect('index.html');
-end;
-
-procedure TPizzariaBackendController.RaiseException(par1, par2: string);
-var
-  R: Extended;
-begin
-  Log.Info('Parameter1=' + QuotedStr(par1), 'PizzariaBackend');
-  Log.Info('Parameter2=' + QuotedStr(par2), 'PizzariaBackend');
-  R := StrToInt(par1) / StrToInt(par2);
-  Render(TJSONObject.Create(TJSONPair.Create('result', TJSONNumber.Create(R))));
+  Log.Info('==>Executou o método ', 'efetuarPedido');
 end;
 
 end.
