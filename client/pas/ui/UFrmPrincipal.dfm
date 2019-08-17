@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 0
   Caption = 'Client'
   ClientHeight = 256
-  ClientWidth = 597
+  ClientWidth = 589
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -67,8 +67,8 @@ object Form1: TForm1
       'enPortuguesa')
   end
   object Button1: TButton
-    Left = 104
-    Top = 217
+    Left = 16
+    Top = 219
     Width = 105
     Height = 25
     Caption = '&1 - Fazer Pedido'
@@ -77,7 +77,7 @@ object Form1: TForm1
   end
   object mmRetornoWebService: TMemo
     Left = 312
-    Top = 25
+    Top = 27
     Width = 265
     Height = 217
     Lines.Strings = (
@@ -105,5 +105,14 @@ object Form1: TForm1
     EditLabel.Caption = 'Porta Pizzaria Backend:'
     TabOrder = 6
     Text = '8080'
+  end
+  object Button2: TButton
+    Left = 176
+    Top = 219
+    Width = 112
+    Height = 25
+    Caption = '&2 - Consultar Pedido'
+    TabOrder = 7
+    OnClick = Button2Click
   end
 end
